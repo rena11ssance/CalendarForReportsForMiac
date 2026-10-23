@@ -1,0 +1,174 @@
+﻿<Window x:Class="CalendarForReports.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Планировщик отчётов" Height="820" Width="1280"
+        WindowStartupLocation="CenterScreen"
+        Background="#F7F7FA"
+        Closing="Window_Closing">
+    <Window.Resources>
+        <Style x:Key="TaskChipStyle" TargetType="Border">
+            <Setter Property="Background" Value="#7FB3E8"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Padding" Value="4,2"/>
+            <Setter Property="Margin" Value="0,1"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="ToolTip" Value="{Binding Title}"/>
+        </Style>
+
+        <DataTemplate x:Key="DayCardTemplate">
+            <Border Margin="2" Padding="4"
+                    CornerRadius="6"
+                    PreviewMouseLeftButtonDown="DayCard_PreviewMouseDown"
+                    Tag="{Binding}">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="Background" Value="White"/>
+                        <Setter Property="BorderBrush" Value="#E0E0E0"/>
+                        <Setter Property="BorderThickness" Value="1"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                <Setter Property="Background" Value="#EAF2FB"/>
+                                <Setter Property="BorderBrush" Value="#3498DB"/>
+                                <Setter Property="BorderThickness" Value="2"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" FontSize="13" FontWeight="SemiBold"
+                               Text="{Binding DayNumber}" Margin="2,0,0,2">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsToday}" Value="True">
+                                        <Setter Property="Foreground" Value="#E74C3C"/>
+                                        <Setter Property="FontWeight" Value="Bold"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding IsCurrentMonth}" Value="False">
+                                        <Setter Property="Foreground" Value="#B0B0B0"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+
+                    <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                  Focusable="False"
+                                  Background="Transparent">
+                        <ItemsControl ItemsSource="{Binding Tasks}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <!-- Убран MouseDoubleClick. Двойной клик ловится внутри TaskChip_PreviewMouseDown -->
+                                    <Border Style="{StaticResource TaskChipStyle}"
+                                            Background="{Binding ChipColor}"
+                                            PreviewMouseLeftButtonDown="TaskChip_PreviewMouseDown"
+                                            Tag="{Binding}">
+                                        <TextBlock Text="{Binding Title}" 
+                                                   FontSize="10" 
+                                                   Foreground="White"
+                                                   TextTrimming="CharacterEllipsis"/>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </DockPanel>
+            </Border>
+        </DataTemplate>
+    </Window.Resources>
+
+    <Grid Margin="10">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="320"/>
+        </Grid.ColumnDefinitions>
+
+        <Grid Grid.Column="0" Margin="0,0,10,0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0" Margin="0,0,0,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <Button Grid.Column="0" Content="‹" FontSize="18" Width="40" Height="32"
+                        Click="PrevMonth_Click"/>
+                <TextBlock Grid.Column="1" x:Name="MonthTitle" Text="Октябрь 2026"
+                           FontSize="20" FontWeight="Bold" HorizontalAlignment="Center"
+                           VerticalAlignment="Center"/>
+                <StackPanel Grid.Column="2" Orientation="Horizontal">
+                    <Button Content="Сегодня" Height="32" Padding="12,0" Margin="0,0,4,0"
+                            Click="Today_Click"/>
+                    <Button Content="›" FontSize="18" Width="40" Height="32"
+                            Click="NextMonth_Click"/>
+                </StackPanel>
+            </Grid>
+
+            <UniformGrid Grid.Row="1" Columns="7" Margin="0,0,0,2">
+                <TextBlock Text="Пн" HorizontalAlignment="Center" FontWeight="SemiBold" Foreground="#666"/>
+                <TextBlock Text="Вт" HorizontalAlignment="Center" FontWeight="SemiBold" Foreground="#666"/>
+                <TextBlock Text="Ср" HorizontalAlignment="Center" FontWeight="SemiBold" Foreground="#666"/>
+                <TextBlock Text="Чт" HorizontalAlignment="Center" FontWeight="SemiBold" Foreground="#666"/>
+                <TextBlock Text="Пт" HorizontalAlignment="Center" FontWeight="SemiBold" Foreground="#666"/>
+                <TextBlock Text="Сб" HorizontalAlignment="Center" FontWeight="SemiBold" Foreground="#999"/>
+                <TextBlock Text="Вс" HorizontalAlignment="Center" FontWeight="SemiBold" Foreground="#999"/>
+            </UniformGrid>
+
+            <ItemsControl Grid.Row="2" x:Name="DaysItemsControl">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <UniformGrid Columns="7" Rows="6"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <StaticResource ResourceKey="DayCardTemplate"/>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </Grid>
+
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="0">
+                <TextBlock FontWeight="Bold" FontSize="16" Text="Управление задачами" Margin="0,0,0,10"/>
+
+                <Button Content="+ Добавить задачу на выбранный день" Height="34" Margin="0,4"
+                        Click="AddTask_Click"/>
+                <Button Content="Изменить выбранную" Height="30" Margin="0,4"
+                        Click="EditSelected_Click" IsEnabled="False" x:Name="EditButton"/>
+                <Button Content="Сделать неактивной" Height="30" Margin="0,4"
+                        Click="DeactivateTask_Click" IsEnabled="False" x:Name="DeactivateButton"/>
+                <Button Content="Удалить на этот день" Height="30" Margin="0,4"
+                        Click="DeleteOccurrence_Click" IsEnabled="False" x:Name="DeleteOccurrenceButton"/>
+                <Button Content="Удалить серию целиком" Height="30" Margin="0,4"
+                        Click="DeleteSeries_Click" IsEnabled="False" x:Name="DeleteSeriesButton"/>
+
+                <TextBlock x:Name="SelectedTaskInfo" Foreground="#666" FontStyle="Italic"
+                           TextWrapping="Wrap" Margin="0,10,0,0"
+                           Text="Задача не выбрана. Кликни по плашке задачи в календаре."/>
+            </StackPanel>
+
+            <Expander Grid.Row="1" x:Name="InactiveExpander" Header="Неактивные задачи (0)"
+                      Margin="0,20,0,0" FontWeight="Bold" VerticalAlignment="Top">
+                <StackPanel>
+                    <ListBox x:Name="InactiveTasksListBox" DisplayMemberPath="Display" 
+                             Height="150" Margin="0,5"/>
+                    <Button Content="Включить выбранную" Height="30" Margin="0,4"
+                            Click="ActivateSelected_Click"/>
+                    <Button Content="Удалить навсегда" Height="30" Margin="0,4"
+                            Click="DeleteSelectedPermanently_Click"/>
+                </StackPanel>
+            </Expander>
+        </Grid>
+    </Grid>
+</Window>
